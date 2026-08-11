@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+}
+
+#app {
+    max-width: 1126px;
+    margin: 0 auto;
+    text-align: center;
+    min-height: 100svh;
+    box-sizing: border-box;
+}

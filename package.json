@@ -1,0 +1,24 @@
+{
+  "name": "text-to-polygon",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build:wasm": "wasm-pack build rust --target web --out-dir ../src/lib/wasm",
+    "dev": "npm run build:wasm \"--\" --dev && vite",
+    "build": "npm run build:wasm \"--\" --release && vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/node": "^24.13.3",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.56.8",
+    "svelte-check": "^4.7.5",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}
