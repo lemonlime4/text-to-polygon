@@ -1,20 +1,13 @@
-import { mount } from 'svelte';
-import './app.css';
-import App from './App.svelte';
-
-import init, { set_panic_hook, greet, add } from './lib/wasm/rust';
+import init, { set_panic_hook } from "./lib/wasm/rust";
 await init();
 set_panic_hook();
-try {
-    greet('name');
-    console.log(add(1, 2));
-    console.log(add(2 ** 31 - 1, 0));
-} catch (e) {
-    console.error(e);
-}
+
+import { mount } from "svelte";
+import "./app.css";
+import App from "./App.svelte";
 
 const app = mount(App, {
-    target: document.getElementById('app')!,
+  target: document.getElementById("app")!,
 });
 
 export default app;
