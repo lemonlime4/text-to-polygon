@@ -13,8 +13,10 @@ default = ["console_error_panic_hook"]
 [dependencies]
 wasm-bindgen = "0.2.84"
 # web-sys = { version = "0.3.104", features = ["Blob"] }
-harfrust = "0.13.0"
-skrifa = "0.46.0"
+wuff = "0.2.9"
+harfrust = "0.13.3"
+skrifa = "0.46.2"
+glam = "0.33.6"
 
 # TODO make this disappear in release
 console_error_panic_hook = { version = "0.1.7", optional = true }

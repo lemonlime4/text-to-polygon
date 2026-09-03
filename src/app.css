@@ -1,10 +1,15 @@
+html,
+body {
+  /* width: 100%; */
+}
+
 body {
   margin: 0;
 }
 
 #app {
   display: flow-root;
-  max-width: 1126px;
+  /* max-width: 1126px; */
   margin: 0 1em;
   min-height: 100svh;
   box-sizing: border-box;
