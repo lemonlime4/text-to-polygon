@@ -1,25 +1,29 @@
+//! Debug ui
 use std::iter;
 
-use harfrust::{GlyphBuffer, ShaperData};
+use harfrust::GlyphBuffer;
 use skrifa::{
     FontRef, GlyphId, MetadataProvider,
     instance::{LocationRef, Size},
-    outline::{DrawSettings, OutlinePen},
+    outline::{DrawError, DrawSettings, OutlinePen},
 };
 use wasm_bindgen::prelude::*;
 
-use crate::{get_glyph_buf, load_font};
+use crate::{get_glyph_buf, load_font::STATE};
 
 #[wasm_bindgen]
-pub fn to_svg_path(font_bytes: &[u8], text: &str) -> Result<String, String> {
-    let mut decompressed = Vec::new();
-    let font = load_font(&mut decompressed, font_bytes)?;
-    let shaper_data = ShaperData::new(&font);
-    let shaper = shaper_data.shaper(&font).build();
-    Ok(draw_glyph_buf(&font, get_glyph_buf(&shaper, text))?)
+pub fn to_svg_path(text: &str) -> Result<Option<String>, String> {
+    STATE
+        .with_borrow(|state| -> Option<Result<String, DrawError>> {
+            let font = state.loaded_font.as_ref()?;
+            let buf = get_glyph_buf(font.borrow_shaper(), text);
+            Some(draw_glyph_buf(font.borrow_font_ref(), buf))
+        })
+        .transpose()
+        .map_err(|e| e.to_string())
 }
 
-fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, String> {
+fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, DrawError> {
     let size = Size::new(16.0);
     let location = LocationRef::default();
     let scale = size.linear_scale(font.metrics(size, location).units_per_em);
@@ -30,9 +34,7 @@ fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, String> {
         let settings = DrawSettings::unhinted(size, location);
         svg_path.x_offset = glyph_pos.x_offset as f32 * scale;
         svg_path.y_offset = glyph_pos.y_offset as f32 * scale;
-        glyph
-            .draw(settings, &mut svg_path)
-            .map_err(|err| err.to_string())?;
+        glyph.draw(settings, &mut svg_path)?;
         svg_path.x += glyph_pos.x_advance as f32 * scale;
         svg_path.y += glyph_pos.y_advance as f32 * scale;
     }

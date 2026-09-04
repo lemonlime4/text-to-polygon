@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { Attachment } from "svelte/attachments";
-  import { to_desmos_expr } from "./lib/wasm/rust";
+  import { load_font, to_desmos_expr } from "./lib/wasm/rust";
   import DebugComparison from "./lib/DebugComparison.svelte";
 
   let inputText: string = $state("The five boxing wizards jump quickly.");
   let fileList: FileList = $state(new DataTransfer().files);
-  let fontFile: File | null = $derived(fileList[0] || null);
+  let fontFile: File | undefined = $derived(fileList[0]);
 </script>
 
 <h1>Text to desmos</h1>
@@ -20,26 +20,29 @@
   style="width: 30em; height: 2lh; font-family: serif;"></textarea>
 
 {#if fontFile}
-  <p>
-    Loaded font "{fontFile.name}" - {fontFile.size} bytes
-  </p>
-  {#await fontFile.bytes() then fontBytes}
-    {let polygonLatex = to_desmos_expr(fontBytes, inputText)}
-    <p style="overflow: scroll;">
-      <code>
-        {polygonLatex}
-      </code>
+  {let fontLoaded: Promise<void> = $derived(fontFile.bytes().then(load_font))}
+  {#await fontLoaded then _}
+    <p>
+      Loaded font "{fontFile.name}" - {fontFile.size} bytes
     </p>
-    <button onclick={() => navigator.clipboard.writeText(polygonLatex)}
-      >Copy</button
-    >
+    {let polygonLatex = to_desmos_expr(inputText)}
+    {#if polygonLatex !== undefined}
+      <p style="overflow: scroll;">
+        <code>
+          {polygonLatex}
+        </code>
+      </p>
+      <button onclick={() => navigator.clipboard.writeText(polygonLatex)}
+        >Copy</button
+      >
+    {/if}
   {/await}
 {/if}
 
-{let showDebug = $state(false)}
+{let showDebug = $state(true)}
 <p>
   <label><input type="checkbox" bind:checked={showDebug} />Debug ui</label>
 </p>
-{#if showDebug}
+{#if fontFile && showDebug}
   <DebugComparison {inputText} {fontFile} />
 {/if}

@@ -77,7 +77,7 @@
   {let textWidth: number = $state(0)}
   {#await fontFile.bytes() then fontFileBytes}
     <svelte:boundary>
-      {let path = $derived(to_svg_path(fontFileBytes, inputText))}
+      {let path = $derived(to_svg_path(inputText))}
 
       <div style="font-family: 'User font'; font-size: 2em;">
         <pre

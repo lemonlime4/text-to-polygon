@@ -5,26 +5,29 @@ mod utils;
 mod to_svg_path;
 
 use glam::{Vec2, ivec2, vec2};
-use harfrust::{FontRef, GlyphBuffer, ShapeOptions, Shaper, ShaperData, UnicodeBuffer};
+use harfrust::{FontRef, GlyphBuffer, ShapeOptions, Shaper, UnicodeBuffer};
 use skrifa::{
     GlyphId, MetadataProvider,
     instance::{LocationRef, Size},
-    outline::{DrawSettings, OutlinePen},
+    outline::{DrawError, DrawSettings, OutlinePen},
 };
 
 use core::fmt;
 use std::iter;
 use wasm_bindgen::prelude::*;
 
-use crate::load_font::load_font;
+use crate::load_font::STATE;
 
 #[wasm_bindgen]
-pub fn to_desmos_expr(font_bytes: &[u8], text: &str) -> Result<String, String> {
-    let mut decompressed = Vec::new();
-    let font = load_font(&mut decompressed, font_bytes)?;
-    let shaper_data = ShaperData::new(&font);
-    let shaper = shaper_data.shaper(&font).build();
-    Ok(draw_glyph_buf(&font, get_glyph_buf(&shaper, text))?)
+pub fn to_desmos_expr(text: &str) -> Result<Option<String>, String> {
+    STATE
+        .with_borrow(|state| -> Option<Result<String, DrawError>> {
+            let font = state.loaded_font.as_ref()?;
+            let buf = get_glyph_buf(font.borrow_shaper(), text);
+            Some(draw_glyph_buf(font.borrow_font_ref(), buf))
+        })
+        .transpose()
+        .map_err(|e| e.to_string())
 }
 
 pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
@@ -34,7 +37,7 @@ pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
     shaper.shape(unicode_buf, ShapeOptions::new())
 }
 
-pub fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, String> {
+pub fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, DrawError> {
     let size = Size::new(16.0);
     let location = LocationRef::default();
     let scale = size.linear_scale(font.metrics(size, location).units_per_em);
@@ -44,9 +47,7 @@ pub fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, String
         let glyph = outlines.get(GlyphId::new(glyph_info.glyph_id)).unwrap();
         let settings = DrawSettings::unhinted(size, location);
         pen.offset = ivec2(glyph_pos.x_offset, glyph_pos.y_offset).as_vec2() * scale;
-        glyph
-            .draw(settings, &mut pen)
-            .map_err(|err| err.to_string())?;
+        glyph.draw(settings, &mut pen)?;
         pen.pos += ivec2(glyph_pos.x_advance, glyph_pos.y_advance).as_vec2() * scale;
     }
     Ok(format!("{:.3}", PolygonFormatter(&pen.output)))
