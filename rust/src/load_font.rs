@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wuff::{WuffErr, decompress_woff1, decompress_woff2};
 
 thread_local! {
-    pub static STATE: RefCell<State> = const { RefCell::new(State { loaded_font:None}) };
+    pub static STATE: RefCell<State> = const { RefCell::new(State { loaded_font: None }) };
 }
 
 #[derive(Default)]
@@ -36,27 +36,6 @@ fn make_font(bytes: Vec<u8>) -> Result<Font, ReadError> {
         |font_ref, shaper_data| Ok(shaper_data.shaper(font_ref).build()),
     )
 }
-
-// pub fn load_font<'a>(
-//     font_bytes: &'a [u8],
-// ) -> Result<FontRef<'a>, String> {
-//     Ok(match FontRef::new(font_bytes) {
-//         Ok(font) => font,
-//         Err(err) => {
-//             use ReadError::InvalidSfnt;
-//             use wuff::*;
-
-//             *decompressed = match err {
-//                 InvalidSfnt(WOFF1_SFNT) => decompress_woff1(font_bytes),
-//                 InvalidSfnt(WOFF2_SFNT) => decompress_woff2(font_bytes),
-//                 _ => return Err(err.to_string()),
-//             }
-//             .map_err(|e| e.to_string())?;
-
-//             FontRef::new(decompressed).map_err(|e| e.to_string())?
-//         }
-//     })
-// }
 
 #[wasm_bindgen]
 pub fn load_font(bytes: Vec<u8>) -> Result<(), String> {
