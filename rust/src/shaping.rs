@@ -8,7 +8,11 @@ use skrifa::{
 
 use std::iter;
 
-use crate::sampling::{CubicBezier, Sampler};
+use crate::{
+    curves::{CubicBezier, Line, QuadBezier},
+    sampling::Sampler,
+};
+
 pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
     let mut unicode_buf = UnicodeBuffer::new();
     unicode_buf.push_str(text);
@@ -44,47 +48,56 @@ pub fn sample_glyph_buf(
 }
 
 struct Pen<'a> {
-    sampler: &'a dyn Sampler,
     pos: Vec2,
     offset: Vec2,
-    output: Vec<Vec2>,
     /// in glyph space
     path_start: Vec2,
     /// in glyph space
     current_point: Vec2,
-}
 
-impl<'a> Pen<'a> {
-    fn push(&mut self, p: Vec2) {
-        self.current_point = p;
-        self.output.push(self.pos + self.offset + p);
-    }
+    sampler: &'a dyn Sampler,
+    output: Vec<Vec2>,
 }
 
 impl<'a> OutlinePen for Pen<'a> {
     fn move_to(&mut self, x: f32, y: f32) {
+        self.output.push(Vec2::NAN);
+        self.output.push(vec2(x, y));
         self.path_start = vec2(x, y);
-        self.push(Vec2::NAN);
-        self.push(vec2(x, y));
+        self.current_point = vec2(x, y);
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
-        self.push(vec2(x, y));
+        self.output.extend(
+            self.sampler
+                .sample_line(Line {
+                    p0: self.current_point,
+                    p1: vec2(x, y),
+                })
+                .into_iter()
+                .map(|p| self.pos + self.offset + p),
+        );
+        self.current_point = vec2(x, y);
     }
 
     fn quad_to(&mut self, cx0: f32, cy0: f32, x: f32, y: f32) {
-        let p0 = self.current_point;
-        let p1 = vec2(x, y);
-        let c = vec2(cx0, cy0);
-        let c0 = (p0 + 2.0 * c) / 3.0;
-        let c1 = (p1 + 2.0 * c) / 3.0;
-        self.curve_to(c0.x, c0.y, c1.x, c1.y, x, y);
+        self.output.extend(
+            self.sampler
+                .sample_quad(QuadBezier {
+                    p0: self.current_point,
+                    c: vec2(cx0, cy0),
+                    p1: vec2(x, y),
+                })
+                .into_iter()
+                .map(|p| self.pos + self.offset + p),
+        );
+        self.current_point = vec2(x, y);
     }
 
     fn curve_to(&mut self, cx0: f32, cy0: f32, cx1: f32, cy1: f32, x: f32, y: f32) {
         self.output.extend(
             self.sampler
-                .sample(CubicBezier {
+                .sample_cubic(CubicBezier {
                     p0: self.current_point,
                     c0: vec2(cx0, cy0),
                     c1: vec2(cx1, cy1),
@@ -97,6 +110,7 @@ impl<'a> OutlinePen for Pen<'a> {
     }
 
     fn close(&mut self) {
-        self.push(self.path_start);
+        self.output.push(self.path_start);
+        self.current_point = self.path_start;
     }
 }

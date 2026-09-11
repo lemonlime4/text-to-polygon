@@ -1,3 +1,4 @@
+mod curves;
 mod format;
 mod load_font;
 mod sampling;
@@ -29,15 +30,3 @@ pub fn to_desmos_expr(text: &str) -> Result<Option<String>, String> {
         .transpose()
         .map_err(|e| e.to_string())
 }
-
-// struct X<T>(T);
-// trait A {
-//     fn f();
-// }
-// trait B {}
-// impl<T: !B> A for X<T> {
-//     fn f() {}
-// }
-// impl<T: B> A for X<T> {
-//     fn f() {}
-// }
