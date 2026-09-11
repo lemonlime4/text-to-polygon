@@ -107,7 +107,7 @@
       </div>
 
       {#snippet failed(error)}
-        <p style="color: red; font-size: 1rem;">{error}</p>
+        <p style="color: red">{error}</p>
       {/snippet}
     </svelte:boundary>
   {/await}

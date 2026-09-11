@@ -25,17 +25,25 @@
     <p>
       Loaded font "{fontFile.name}" - {fontFile.size} bytes
     </p>
-    {let polygonLatex = to_desmos_expr(inputText)}
-    {#if polygonLatex !== undefined}
-      <p style="overflow: scroll;">
-        <code>
-          {polygonLatex}
-        </code>
-      </p>
-      <button onclick={() => navigator.clipboard.writeText(polygonLatex)}
-        >Copy</button
-      >
-    {/if}
+    <svelte:boundary>
+      {let polygonLatex = $derived(to_desmos_expr(inputText))}
+      {#if polygonLatex !== undefined}
+        <p style="overflow: scroll;">
+          <code>
+            {polygonLatex}
+          </code>
+        </p>
+        <p>
+          <button onclick={() => navigator.clipboard.writeText(polygonLatex)}
+            >Copy</button
+          >
+          - {polygonLatex.length} characters
+        </p>
+      {/if}
+      {#snippet failed(error)}
+        <p style:color="red">{error}</p>
+      {/snippet}
+    </svelte:boundary>
   {/await}
 {/if}
 

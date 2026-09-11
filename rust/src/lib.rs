@@ -5,6 +5,8 @@ mod sampling;
 mod shaping;
 mod utils;
 
+pub use load_font::load_font;
+
 // debug
 mod to_svg_path;
 
@@ -13,8 +15,8 @@ use wasm_bindgen::prelude::*;
 use crate::{
     format::PolygonFormatter,
     load_font::STATE,
-    sampling::FixedCountSampler,
-    shaping::{get_glyph_buf, sample_glyph_buf},
+    sampling::{FixedCountSampler, sample_glyph_buf},
+    shaping::get_glyph_buf,
 };
 
 // returns None only when no font loaded

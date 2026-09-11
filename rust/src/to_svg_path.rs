@@ -1,89 +1,65 @@
-//! Debug ui
-use std::iter;
+//! Outputting svg curves for debug
+use glam::Vec2;
 
-use harfrust::GlyphBuffer;
-use skrifa::{
-    FontRef, GlyphId, MetadataProvider,
-    instance::{LocationRef, Size},
-    outline::{DrawError, DrawSettings, OutlinePen},
-};
 use wasm_bindgen::prelude::*;
 
-use crate::{get_glyph_buf, load_font::STATE};
+use crate::{
+    get_glyph_buf,
+    load_font::STATE,
+    shaping::{BasePen, PenOutput, draw_glyph_buf},
+};
 
+// returns None only when no font loaded
 #[wasm_bindgen]
 pub fn to_svg_path(text: &str) -> Result<Option<String>, String> {
     STATE
-        .with_borrow(|state| -> Option<Result<String, DrawError>> {
+        .with_borrow(|state| -> Option<Result<_, _>> {
             let font = state.loaded_font.as_ref()?;
             let buf = get_glyph_buf(font.borrow_shaper(), text);
-            Some(draw_glyph_buf(font.borrow_font_ref(), buf))
+            Some(draw_glyph_buf(
+                Box::new(SvgOutput::default()),
+                font.borrow_font_ref(),
+                buf,
+            ))
         })
         .transpose()
         .map_err(|e| e.to_string())
 }
 
-fn draw_glyph_buf(font: &FontRef, buf: GlyphBuffer) -> Result<String, DrawError> {
-    let size = Size::new(16.0);
-    let location = LocationRef::default();
-    let scale = size.linear_scale(font.metrics(size, location).units_per_em);
-    let outlines = font.outline_glyphs();
-    let mut svg_path = SvgPath::default();
-    for (glyph_info, glyph_pos) in iter::zip(buf.glyph_infos(), buf.glyph_positions()) {
-        let glyph = outlines.get(GlyphId::new(glyph_info.glyph_id)).unwrap();
-        let settings = DrawSettings::unhinted(size, location);
-        svg_path.x_offset = glyph_pos.x_offset as f32 * scale;
-        svg_path.y_offset = glyph_pos.y_offset as f32 * scale;
-        glyph.draw(settings, &mut svg_path)?;
-        svg_path.x += glyph_pos.x_advance as f32 * scale;
-        svg_path.y += glyph_pos.y_advance as f32 * scale;
-    }
-    Ok(format!("{}", svg_path.path))
-}
-
 #[derive(Default)]
-struct SvgPath {
+struct SvgOutput {
     path: String,
-    x: f32,
-    y: f32,
-    x_offset: f32,
-    y_offset: f32,
 }
-impl OutlinePen for SvgPath {
-    fn move_to(&mut self, x: f32, y: f32) {
-        let x = x + self.x + self.x_offset;
-        let y = y + self.y + self.y_offset;
-        self.path.push_str(&format!("M{x:.4} {y:.4}"));
-    }
 
-    fn line_to(&mut self, x: f32, y: f32) {
-        let x = x + self.x + self.x_offset;
-        let y = y + self.y + self.y_offset;
-        self.path.push_str(&format!("L{x:.4} {y:.4}"));
-    }
-
-    fn quad_to(&mut self, cx0: f32, cy0: f32, x: f32, y: f32) {
-        let cx0 = cx0 + self.x + self.x_offset;
-        let cy0 = cy0 + self.y + self.y_offset;
-        let x = x + self.x + self.x_offset;
-        let y = y + self.y + self.y_offset;
+impl PenOutput for SvgOutput {
+    type Output = String;
+    fn output(self: Box<Self>) -> Self::Output {
         self.path
-            .push_str(&format!("Q{cx0:.4} {cy0:.4} {x:.4} {y:.4}"));
     }
-
-    fn curve_to(&mut self, cx0: f32, cy0: f32, cx1: f32, cy1: f32, x: f32, y: f32) {
-        let cx0 = cx0 + self.x + self.x_offset;
-        let cy0 = cy0 + self.y + self.y_offset;
-        let cx1 = cx1 + self.x + self.x_offset;
-        let cy1 = cy1 + self.y + self.y_offset;
-        let x = x + self.x + self.x_offset;
-        let y = y + self.y + self.y_offset;
+    fn move_to(&mut self, base: &BasePen, p1: Vec2) {
+        let p1 = base.glyph_pos() + p1;
+        self.path.push_str(&format!("M{:.4} {:.4}", p1.x, p1.y));
+    }
+    fn line_to(&mut self, base: &BasePen, p1: Vec2) {
+        let p1 = base.glyph_pos() + p1;
+        self.path.push_str(&format!("L{:.4} {:.4}", p1.x, p1.y));
+    }
+    fn quad_to(&mut self, base: &BasePen, c: Vec2, p1: Vec2) {
+        let c = base.glyph_pos() + c;
+        let p1 = base.glyph_pos() + p1;
+        self.path
+            .push_str(&format!("Q{:.4} {:.4} {:.4} {:.4}", c.x, c.y, p1.x, p1.y));
+    }
+    fn curve_to(&mut self, base: &BasePen, c0: Vec2, c1: Vec2, p1: Vec2) {
+        let c0 = base.glyph_pos() + c0;
+        let c1 = base.glyph_pos() + c1;
+        let p1 = base.glyph_pos() + p1;
         self.path.push_str(&format!(
-            "C{cx0:.4} {cy0:.4} {cx1:.4} {cy1:.4} {x:.4} {y:.4}"
+            "C{:.4} {:.4} {:.4} {:.4} {:.4} {:.4}",
+            c0.x, c0.y, c1.x, c1.y, p1.x, p1.y
         ));
     }
-
-    fn close(&mut self) {
+    fn close(&mut self, _base: &BasePen) {
         self.path.push_str("Z");
     }
 }

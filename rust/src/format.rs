@@ -10,7 +10,7 @@ impl fmt::Display for PolygonFormatter<'_> {
 
         f.write_str("\\operatorname{polygon}\\left(\\left[")?;
 
-        for x in points[1..].iter().map(|v| v.x) {
+        for x in points.iter().map(|v| v.x) {
             if x.is_nan() {
                 f.write_str("0\\infinity,")?;
             } else {
@@ -18,9 +18,9 @@ impl fmt::Display for PolygonFormatter<'_> {
             }
         }
 
-        f.write_str("0\\infinity\\right],\\left[")?;
+        f.write_str("\\right],\\left[")?;
 
-        for y in points[1..].iter().map(|v| v.y) {
+        for y in points.iter().map(|v| v.y) {
             if y.is_nan() {
                 f.write_str("0\\infinity,")?;
             } else {
@@ -28,7 +28,7 @@ impl fmt::Display for PolygonFormatter<'_> {
             }
         }
 
-        f.write_str("0\\infinity\\right]\\right)")?;
+        f.write_str("\\right]\\right)")?;
         Ok(())
     }
 }
