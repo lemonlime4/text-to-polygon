@@ -5,14 +5,21 @@ use crate::{
     sampling::Sampler,
 };
 
-pub struct FixedCountSampler(pub u32);
+pub struct FixedCountSampler {
+    count: u32,
+}
+
+impl FixedCountSampler {
+    pub fn new(count: u32) -> Self {
+        Self { count }
+    }
+}
 
 impl Sampler for FixedCountSampler {
     fn sample_cubic(&self, curve: CubicBezier) -> Vec<Vec2> {
-        let n = self.0;
-        (1..=n)
+        (1..=self.count)
             .map(move |i| {
-                let t = i as f32 / n as f32;
+                let t = i as f32 / self.count as f32;
                 curve.eval(t)
             })
             .collect()

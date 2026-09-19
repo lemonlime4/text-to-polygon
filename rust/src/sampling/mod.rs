@@ -1,5 +1,10 @@
+#![allow(dead_code)]
+pub mod control_points;
 pub mod fixed_count;
-pub use fixed_count::*;
+pub mod recursive_subdivide;
+
+#[allow(unused_imports)]
+pub use self::{control_points::*, fixed_count::*, recursive_subdivide::*};
 
 use glam::Vec2;
 use harfrust::GlyphBuffer;
@@ -30,7 +35,7 @@ pub trait Sampler {
     fn sample_cubic(&self, curve: CubicBezier) -> Vec<Vec2>;
 
     fn sample_quad(&self, curve: QuadBezier) -> Vec<Vec2> {
-        self.sample_cubic(CubicBezier::from(curve))
+        self.sample_cubic(curve.into())
     }
 
     fn sample_line(&self, line: Line) -> Vec<Vec2> {
@@ -95,6 +100,8 @@ impl<'a> PenOutput for PolygonOutput<'a> {
     }
 
     fn close(&mut self, base: &BasePen) {
-        self.output.push(base.glyph_pos() + base.path_start);
+        if base.current_point != base.path_start {
+            self.output.push(base.glyph_pos() + base.path_start);
+        }
     }
 }
