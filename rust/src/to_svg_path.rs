@@ -40,23 +40,23 @@ impl PenOutput for SvgOutput {
         self.path
     }
     fn move_to(&mut self, base: &BasePen, p1: Vec2) {
-        let p1 = base.glyph_pos() + p1;
+        let p1 = base.transform(p1);
         self.path.push_str(&format!("M{:.4} {:.4}", p1.x, p1.y));
     }
     fn line_to(&mut self, base: &BasePen, p1: Vec2) {
-        let p1 = base.glyph_pos() + p1;
+        let p1 = base.transform(p1);
         self.path.push_str(&format!("L{:.4} {:.4}", p1.x, p1.y));
     }
     fn quad_to(&mut self, base: &BasePen, c: Vec2, p1: Vec2) {
-        let c = base.glyph_pos() + c;
-        let p1 = base.glyph_pos() + p1;
+        let c = base.transform(c);
+        let p1 = base.transform(p1);
         self.path
             .push_str(&format!("Q{:.4} {:.4} {:.4} {:.4}", c.x, c.y, p1.x, p1.y));
     }
     fn curve_to(&mut self, base: &BasePen, c0: Vec2, c1: Vec2, p1: Vec2) {
-        let c0 = base.glyph_pos() + c0;
-        let c1 = base.glyph_pos() + c1;
-        let p1 = base.glyph_pos() + p1;
+        let c0 = base.transform(c0);
+        let c1 = base.transform(c1);
+        let p1 = base.transform(p1);
         self.path.push_str(&format!(
             "C{:.4} {:.4} {:.4} {:.4} {:.4} {:.4}",
             c0.x, c0.y, c1.x, c1.y, p1.x, p1.y

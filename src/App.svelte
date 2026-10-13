@@ -26,13 +26,19 @@
       id: "1",
       latex: "\\operatorname{polygon}\\left(P\\right)",
     });
+    calc.setExpression({
+      id: "P",
+      latex: "P=\\left[\\right]",
+      pointSize: 4,
+    });
     return () => calc.destroy();
   });
 
   $effect(() => {
+    $state.snapshot(fontFile);
     let pointLatex = to_desmos_expr(inputText, fontSettings, samplingMethod);
     if (pointLatex === undefined) return;
-    calc.setExpression({ id: "P", latex: "P=" + pointLatex, pointSize: 4 });
+    calc.setExpression({ id: "P", latex: "P=" + pointLatex });
   });
 </script>
 
@@ -96,11 +102,6 @@
   {/await}
 {/if}
 
-<!-- {let calc!: Desmos.Calculator;}
-<DesmosWindow bind:calc /> -->
-
-<div bind:this={calcElem} style="height: 400px;"></div>
-
 {let showDebug = $state(false)}
 <p>
   <label><input type="checkbox" bind:checked={showDebug} />Debug ui</label>
@@ -108,3 +109,5 @@
 {#if fontFile && showDebug}
   <DebugComparison {inputText} {fontFile} {fontSettings} />
 {/if}
+
+<div bind:this={calcElem} style="height: 400px;"></div>

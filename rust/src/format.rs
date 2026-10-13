@@ -1,9 +1,9 @@
 use glam::Vec2;
 use std::fmt;
 
-pub struct PolygonFormatter<'a>(pub &'a [Vec2]);
+pub struct LatexFormatter<'a>(pub &'a [Vec2]);
 
-impl fmt::Display for PolygonFormatter<'_> {
+impl fmt::Display for LatexFormatter<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let points = self.0;
         let precision = 5;

@@ -8,7 +8,7 @@ pub use self::{control_points::*, subdivision::*};
 use glam::Vec2;
 use harfrust::Buffer;
 use serde::{Deserialize, Serialize};
-use skrifa::{FontRef, outline::DrawError};
+use skrifa::FontRef;
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -46,7 +46,7 @@ pub fn sample_glyph_buf<'a>(
     font_ref: &FontRef,
     settings: &FontSettings,
     buf: Buffer,
-) -> Result<Vec<Vec2>, DrawError> {
+) -> anyhow::Result<Vec<Vec2>> {
     draw_glyph_buf(
         Box::new(PolygonOutput {
             sampler,
@@ -85,7 +85,7 @@ impl<'a> PenOutput for PolygonOutput<'a> {
 
     fn move_to(&mut self, base: &BasePen, p1: Vec2) {
         self.output.push(Vec2::NAN);
-        self.output.push(base.glyph_pos() + p1);
+        self.output.push(base.transform(p1));
     }
 
     fn line_to(&mut self, base: &BasePen, p1: Vec2) {
@@ -96,7 +96,7 @@ impl<'a> PenOutput for PolygonOutput<'a> {
                     p1,
                 })
                 .into_iter()
-                .map(|p| base.glyph_pos() + p),
+                .map(|p| base.transform(p)),
         );
     }
 
@@ -109,7 +109,7 @@ impl<'a> PenOutput for PolygonOutput<'a> {
                     p1,
                 })
                 .into_iter()
-                .map(|p| base.glyph_pos() + p),
+                .map(|p| base.transform(p)),
         );
     }
 
@@ -123,13 +123,13 @@ impl<'a> PenOutput for PolygonOutput<'a> {
                     p1,
                 })
                 .into_iter()
-                .map(|p| base.glyph_pos() + p),
+                .map(|p| base.transform(p)),
         );
     }
 
     fn close(&mut self, base: &BasePen) {
         if base.current_point != base.path_start {
-            self.output.push(base.glyph_pos() + base.path_start);
+            self.output.push(base.transform(base.path_start));
         }
     }
 }

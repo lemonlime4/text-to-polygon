@@ -20,7 +20,9 @@
   });
 
   let resizeSvg: Attachment<SVGSVGElement> = (svg) => {
-    // inputText; // artificial dependency
+    inputText; // artificial dependencies
+    $state.snapshot(fontSettings);
+    $state.snapshot(fontFile);
     console.log("resizing svg");
     const { x, y, width, height } = svg.getBBox();
     svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);

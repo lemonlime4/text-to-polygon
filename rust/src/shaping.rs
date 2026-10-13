@@ -3,7 +3,8 @@ use harfrust::{Buffer, ShapeError, ShapeOptions, ShaperFont, shape};
 use skrifa::{
     FontRef, GlyphId, MetadataProvider,
     instance::{LocationRef, Size},
-    outline::{DrawError, DrawSettings, OutlinePen},
+    outline::{DrawSettings, OutlinePen},
+    raw::TableProvider,
 };
 
 use std::iter;
@@ -23,8 +24,7 @@ pub fn draw_glyph_buf<'a, T>(
     font_ref: &FontRef,
     settings: &FontSettings,
     buf: Buffer,
-) -> Result<T, DrawError> {
-    let size = Size::new(settings.font_size);
+) -> anyhow::Result<T> {
     let location = LocationRef::default();
     let outlines = font_ref.outline_glyphs();
     let mut pen = Pen {
@@ -33,13 +33,13 @@ pub fn draw_glyph_buf<'a, T>(
             offset: IVec2::ZERO,
             path_start: Vec2::ZERO,
             current_point: Vec2::ZERO,
-            scale: size.linear_scale(font_ref.metrics(size, location).units_per_em),
+            scale: Size::new(settings.font_size).linear_scale(font_ref.head()?.units_per_em()),
         },
         output: &mut *output,
     };
     for (glyph_info, glyph_pos) in iter::zip(buf.glyph_infos(), buf.glyph_positions()) {
         let glyph = outlines.get(GlyphId::new(glyph_info.glyph_id)).unwrap();
-        let settings = DrawSettings::unhinted(size, location);
+        let settings = DrawSettings::unhinted(Size::unscaled(), location);
         pen.base.offset = ivec2(glyph_pos.x_offset, glyph_pos.y_offset);
         glyph.draw(settings, &mut pen)?;
         pen.base.advance += ivec2(glyph_pos.x_advance, glyph_pos.y_advance);
@@ -53,18 +53,20 @@ struct Pen<'a, T> {
 }
 
 pub struct BasePen {
+    /// In font units
     advance: IVec2,
+    /// In font units
     offset: IVec2,
-    scale: f32,
-    /// in scaled glyph space
+    /// In font units
     pub path_start: Vec2,
-    /// in scaled glyph space
+    /// In font units
     pub current_point: Vec2,
+    scale: f32,
 }
 
 impl BasePen {
-    pub fn glyph_pos(&self) -> Vec2 {
-        self.scale * (self.advance + self.offset).as_vec2()
+    pub fn transform(&self, p: Vec2) -> Vec2 {
+        self.scale * ((self.advance + self.offset).as_vec2() + p)
     }
 }
 
