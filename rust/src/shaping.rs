@@ -8,6 +8,8 @@ use skrifa::{
 
 use std::iter;
 
+use crate::state::FontSettings;
+
 pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
     let mut unicode_buf = UnicodeBuffer::new();
     unicode_buf.push_str(text);
@@ -18,9 +20,10 @@ pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
 pub fn draw_glyph_buf<'a, T>(
     mut output: Box<dyn PenOutput<Output = T> + 'a>,
     font_ref: &FontRef,
+    settings: &FontSettings,
     buf: GlyphBuffer,
 ) -> Result<T, DrawError> {
-    let size = Size::new(16.0);
+    let size = Size::new(settings.font_size);
     let location = LocationRef::default();
     let outlines = font_ref.outline_glyphs();
     let mut pen = Pen {

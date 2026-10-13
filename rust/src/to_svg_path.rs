@@ -1,17 +1,18 @@
 //! Outputting svg curves for debug
 use glam::Vec2;
 
+use tsify::Ts;
 use wasm_bindgen::prelude::*;
 
 use crate::{
     get_glyph_buf,
-    load_font::STATE,
     shaping::{BasePen, PenOutput, draw_glyph_buf},
+    state::{FontSettings, STATE},
 };
 
 // returns None only when no font loaded
 #[wasm_bindgen]
-pub fn to_svg_path(text: &str) -> Result<Option<String>, String> {
+pub fn to_svg_path(text: &str, settings: Ts<FontSettings>) -> Result<Option<String>, String> {
     STATE
         .with_borrow(|state| -> Option<Result<_, _>> {
             let font = state.loaded_font.as_ref()?;
@@ -19,6 +20,7 @@ pub fn to_svg_path(text: &str) -> Result<Option<String>, String> {
             Some(draw_glyph_buf(
                 Box::new(SvgOutput::default()),
                 font.borrow_font_ref(),
+                &settings.to_rust().unwrap(),
                 buf,
             ))
         })

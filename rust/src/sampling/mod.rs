@@ -1,23 +1,50 @@
 #![allow(dead_code)]
 pub mod control_points;
-pub mod fixed_count;
-pub mod recursive_subdivide;
+pub mod subdivision;
 
 #[allow(unused_imports)]
-pub use self::{control_points::*, fixed_count::*, recursive_subdivide::*};
+pub use self::{control_points::*, subdivision::*};
 
 use glam::Vec2;
 use harfrust::GlyphBuffer;
+use serde::{Deserialize, Serialize};
 use skrifa::{FontRef, outline::DrawError};
+use tsify::Tsify;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
     curves::{CubicBezier, Line, QuadBezier},
     shaping::{BasePen, PenOutput, draw_glyph_buf},
+    state::FontSettings,
 };
+
+#[derive(Tsify, Serialize, Deserialize)]
+pub enum SamplingMethod {
+    ControlPoints { to_cubic: bool },
+    Subdivision { tolerance: f32 },
+}
+
+impl SamplingMethod {
+    pub fn get_sampler(&self) -> Box<dyn Sampler> {
+        match self {
+            Self::ControlPoints { to_cubic } => {
+                if *to_cubic {
+                    Box::new(ControlPointsSampler::<true>)
+                } else {
+                    Box::new(ControlPointsSampler::<false>)
+                }
+            }
+            Self::Subdivision { tolerance } => Box::new(SubdivisionSampler {
+                flatness_tolerance: *tolerance,
+            }),
+        }
+    }
+}
 
 pub fn sample_glyph_buf<'a>(
     sampler: &'a dyn Sampler,
     font_ref: &FontRef,
+    settings: &FontSettings,
     buf: GlyphBuffer,
 ) -> Result<Vec<Vec2>, DrawError> {
     draw_glyph_buf(
@@ -26,6 +53,7 @@ pub fn sample_glyph_buf<'a>(
             output: Vec::new(),
         }),
         font_ref,
+        settings,
         buf,
     )
 }

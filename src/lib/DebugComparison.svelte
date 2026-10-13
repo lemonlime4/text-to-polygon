@@ -1,8 +1,12 @@
 <script lang="ts">
   import type { Attachment } from "svelte/attachments";
-  import { to_svg_path } from "./wasm/rust";
+  import { to_svg_path, type FontSettings } from "./wasm/rust";
 
-  let { inputText, fontFile }: { inputText: string; fontFile: File | null } =
+  let {
+    inputText,
+    fontFile,
+    fontSettings,
+  }: { inputText: string; fontFile: File | null; fontSettings: FontSettings } =
     $props();
 
   $effect(() => {
@@ -16,7 +20,7 @@
   });
 
   let resizeSvg: Attachment<SVGSVGElement> = (svg) => {
-    inputText; // artificial dependency
+    // inputText; // artificial dependency
     console.log("resizing svg");
     const { x, y, width, height } = svg.getBBox();
     svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
@@ -77,7 +81,7 @@
   {let textWidth: number = $state(0)}
   {#await fontFile.bytes() then fontFileBytes}
     <svelte:boundary>
-      {let path = $derived(to_svg_path(inputText))}
+      {let path = $derived(to_svg_path(inputText, fontSettings))}
 
       <div style="font-family: 'User font'; font-size: 2em;">
         <pre

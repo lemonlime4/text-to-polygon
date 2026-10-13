@@ -13,6 +13,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tsconfig/svelte": "^5.0.8",
+    "@types/desmos": "^1.12.0",
     "@types/node": "^24.13.3",
     "prettier": "^3.9.6",
     "prettier-plugin-svelte": "^4.1.1",

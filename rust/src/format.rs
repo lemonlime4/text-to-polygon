@@ -8,11 +8,11 @@ impl fmt::Display for PolygonFormatter<'_> {
         let points = self.0;
         let precision = 5;
 
-        f.write_str("\\operatorname{polygon}\\left(\\left[")?;
+        f.write_str("\\left(\\left[")?;
 
         for x in points.iter().map(|v| v.x) {
             if x.is_nan() {
-                f.write_str("0\\infinity,")?;
+                f.write_str("0\\infty,")?;
             } else {
                 write!(f, "{x:.0$},", precision)?;
             }
@@ -22,7 +22,7 @@ impl fmt::Display for PolygonFormatter<'_> {
 
         for y in points.iter().map(|v| v.y) {
             if y.is_nan() {
-                f.write_str("0\\infinity,")?;
+                f.write_str("0\\infty,")?;
             } else {
                 write!(f, "{y:.0$},", precision)?;
             }
