@@ -1,7 +1,7 @@
 use glam::{IVec2, Vec2, ivec2, vec2};
-use harfrust::{FontRef, GlyphBuffer, ShapeOptions, Shaper, UnicodeBuffer};
+use harfrust::{Buffer, ShapeError, ShapeOptions, ShaperFont, shape};
 use skrifa::{
-    GlyphId, MetadataProvider,
+    FontRef, GlyphId, MetadataProvider,
     instance::{LocationRef, Size},
     outline::{DrawError, DrawSettings, OutlinePen},
 };
@@ -10,18 +10,19 @@ use std::iter;
 
 use crate::state::FontSettings;
 
-pub fn get_glyph_buf(shaper: &Shaper, text: &str) -> GlyphBuffer {
-    let mut unicode_buf = UnicodeBuffer::new();
-    unicode_buf.push_str(text);
-    unicode_buf.guess_segment_properties();
-    shaper.shape(unicode_buf, ShapeOptions::new())
+pub fn get_glyph_buf(shaper: &ShaperFont, text: &str) -> Result<Buffer, ShapeError> {
+    let mut buf = Buffer::new();
+    buf.push_str(text);
+    buf.guess_segment_properties();
+    shape(shaper, &mut buf, ShapeOptions::new())?;
+    return Ok(buf);
 }
 
 pub fn draw_glyph_buf<'a, T>(
     mut output: Box<dyn PenOutput<Output = T> + 'a>,
     font_ref: &FontRef,
     settings: &FontSettings,
-    buf: GlyphBuffer,
+    buf: Buffer,
 ) -> Result<T, DrawError> {
     let size = Size::new(settings.font_size);
     let location = LocationRef::default();

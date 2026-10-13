@@ -6,7 +6,7 @@ pub mod subdivision;
 pub use self::{control_points::*, subdivision::*};
 
 use glam::Vec2;
-use harfrust::GlyphBuffer;
+use harfrust::Buffer;
 use serde::{Deserialize, Serialize};
 use skrifa::{FontRef, outline::DrawError};
 use tsify::Tsify;
@@ -45,7 +45,7 @@ pub fn sample_glyph_buf<'a>(
     sampler: &'a dyn Sampler,
     font_ref: &FontRef,
     settings: &FontSettings,
-    buf: GlyphBuffer,
+    buf: Buffer,
 ) -> Result<Vec<Vec2>, DrawError> {
     draw_glyph_buf(
         Box::new(PolygonOutput {

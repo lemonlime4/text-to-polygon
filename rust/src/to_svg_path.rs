@@ -1,6 +1,8 @@
 //! Outputting svg curves for debug
 use glam::Vec2;
 
+use harfrust::ShaperFont;
+use skrifa::FontRef;
 use tsify::Ts;
 use wasm_bindgen::prelude::*;
 
@@ -13,19 +15,18 @@ use crate::{
 // returns None only when no font loaded
 #[wasm_bindgen]
 pub fn to_svg_path(text: &str, settings: Ts<FontSettings>) -> Result<Option<String>, String> {
-    STATE
-        .with_borrow(|state| -> Option<Result<_, _>> {
-            let font = state.loaded_font.as_ref()?;
-            let buf = get_glyph_buf(font.borrow_shaper(), text);
-            Some(draw_glyph_buf(
-                Box::new(SvgOutput::default()),
-                font.borrow_font_ref(),
-                &settings.to_rust().unwrap(),
-                buf,
-            ))
-        })
-        .transpose()
-        .map_err(|e| e.to_string())
+    let settings = settings.to_rust().unwrap();
+    STATE.with_borrow(|state| -> Result<Option<_>, _> {
+        let Some(font_state) = state.loaded_font.as_ref() else {
+            return Ok(None);
+        };
+        let font_ref = FontRef::new(&font_state.bytes).map_err(|e| e.to_string())?;
+        let buf =
+            get_glyph_buf(&ShaperFont::new(&font_state.font), text).map_err(|e| e.to_string())?;
+        draw_glyph_buf(Box::new(SvgOutput::default()), &font_ref, &settings, buf)
+            .map_err(|e| e.to_string())
+            .map(|s| Some(s))
+    })
 }
 
 #[derive(Default)]

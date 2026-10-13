@@ -11,12 +11,12 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-wasm-bindgen = "0.2.84"
+wasm-bindgen = "0.2.129"
 # web-sys = { version = "0.3.104", features = ["Blob"] }
 wuff = "0.2.9"
-harfrust = "0.13.3"
-skrifa = "0.46.2"
-glam = "0.33.8"
+harfrust = "0.14.0"
+skrifa = "0.48.0"
+glam = "0.34.1"
 ouroboros = "0.18.5"
 serde = "1.0.229"
 serde-wasm-bindgen = "0.6.5"
