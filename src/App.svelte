@@ -85,6 +85,12 @@
   }
 </script>
 
+<svelte:window
+  on:beforeunload={(event) => {
+    event.preventDefault();
+  }}
+/>
+
 <h1>Text to desmos</h1>
 <div class="container">
   <div class="panel">
