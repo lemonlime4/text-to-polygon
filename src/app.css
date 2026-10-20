@@ -1,16 +1,18 @@
-html,
-body {
-  /* width: 100%; */
+* {
+  box-sizing: border-box;
 }
 
+html,
 body {
+  width: 100%;
   margin: 0;
 }
 
 #app {
-  display: flow-root;
-  /* max-width: 1126px; */
-  margin: 0 1em;
+  display: flex;
+  flex-flow: column nowrap;
+
   min-height: 100svh;
+  padding: 2em;
   box-sizing: border-box;
 }

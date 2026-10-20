@@ -1,16 +1,18 @@
 <script lang="ts">
   import type { Attachment } from "svelte/attachments";
   import { to_svg_path, type FontSettings } from "./wasm/rust";
+  import Slider from "./Slider.svelte";
 
-  let {
-    inputText,
-    fontFile,
-    fontSettings,
-  }: { inputText: string; fontFile: File | null; fontSettings: FontSettings } =
-    $props();
+  type Props = {
+    inputText: string;
+    fontFile: File | undefined;
+    fontSettings: FontSettings;
+  };
+
+  let { inputText, fontFile, fontSettings }: Props = $props();
 
   $effect(() => {
-    if (!fontFile) return;
+    if (!(fontFile instanceof File)) return;
     let promise = fontFile?.arrayBuffer()?.then((fontArrayBuffer) => {
       let fontFace = new FontFace("User font", fontArrayBuffer);
       document.fonts.add(fontFace);
@@ -20,103 +22,116 @@
   });
 
   let resizeSvg: Attachment<SVGSVGElement> = (svg) => {
-    inputText; // artificial dependencies
-    $state.snapshot(fontSettings);
-    $state.snapshot(fontFile);
+    fontFile;
+    inputText; // artificial dependency
     console.log("resizing svg");
     const { x, y, width, height } = svg.getBBox();
     svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
   };
+
+  let compare = $state(true);
+  let svgOffsetX = $state(0);
+  let svgOffsetY = $state(0.5);
+  let svgScale = $state(1.0);
 </script>
 
-{let compare = $state(true)}
-{let svgOffsetX = $state(0)}
-{let svgOffsetY = $state(0.5)}
-{let svgScale = $state(1.0)}
-<div
-  style="width: 30em;
-  padding: 0.5em;
-  {compare ? 'background: rgb(0 0 0 / .1);' : ''}"
->
+<div class={["overlap-settings", { compare }]}>
   <p style="margin: 0;">
     <label>
-      <input type="checkbox" bind:checked={compare} /> Compare p and svg
+      <input type="checkbox" bind:checked={compare} /> Overlap p and svg
     </label>
   </p>
   {#if compare}
+    {let rangeInputProps = { style: "flex: 1;" }}
     <label style="display: flex; width: 100%;">
       x offset&nbsp;
-      <input
-        type="range"
-        style="flex: 1;"
-        bind:value={svgOffsetX}
-        min="-.5"
-        max=".5"
-        step="any"
-      />
+      <Slider min={-0.5} max={0.5} bind:value={svgOffsetX} {rangeInputProps} />
     </label>
     <label style="display: flex; width: 100%;">
       y offset&nbsp;
-      <input
-        type="range"
-        style="flex: 1;"
-        bind:value={svgOffsetY}
-        min="-.5"
-        max=".5"
-        step="any"
-      />
+      <Slider min={-0.5} max={0.5} bind:value={svgOffsetY} {rangeInputProps} />
     </label>
     <label style="display: flex; width: 100%;">
       svg scale&nbsp;
-      <input
-        type="range"
-        style="flex: 1;"
-        bind:value={svgScale}
-        min="0.9"
-        max="1.1"
-        step="any"
-      />
+      <Slider min={-0.9} max={1.1} bind:value={svgScale} {rangeInputProps} />
     </label>
   {/if}
 </div>
-{#if fontFile !== null}
+{#if fontFile instanceof File}
   {let textWidth: number = $state(0)}
-  {#await fontFile.bytes() then fontFileBytes}
-    <svelte:boundary>
-      {let path = $derived(to_svg_path(inputText, fontSettings))}
+  {let path = $derived((void fontFile, to_svg_path(inputText, fontSettings)))}
 
-      <div style="font-family: 'User font'; font-size: 2em;">
-        <pre
-          bind:clientWidth={textWidth}
-          style="
-        font-family: inherit;
-        display: inline-block;
-        {compare
-            ? 'color: rgb(255 0 0/ 0.5); margin: 0;'
-            : ''}">{inputText.trim()}</pre>
-        <br />
-        <svg
-          {@attach resizeSvg}
-          width={textWidth * (compare ? svgScale : 1.0)}
-          style={compare
-            ? `translate: ${svgOffsetX}em ${svgOffsetY}lh;
-          position: relative;
-          left: 0;
-          top: -1lh;`
-            : ""}
-          ><path
-            fill={compare ? "rgb(0 0 255 / 0.5)" : "black"}
-            transform="scale(1,-1)"
-            d={path}
-          ></path></svg
-        >
-      </div>
-
-      {#snippet failed(error)}
-        <p style="color: red">{error}</p>
-      {/snippet}
-    </svelte:boundary>
-  {/await}
+  <div class="wrapper">
+    <pre
+      class={["pre", { compare }]}
+      bind:clientWidth={textWidth}>{inputText.trim()}</pre>
+    <br />
+    <div
+      class={["svg", { compare }]}
+      style="--offset-x: {svgOffsetX}em; --offset-y: {svgOffsetY}lh;"
+    >
+      <svg {@attach resizeSvg} width={textWidth * (compare ? svgScale : 1.0)}
+        ><path
+          fill={compare ? "rgb(0 0 255 / 0.5)" : "black"}
+          transform="scale(1,-1)"
+          d={path}
+        ></path></svg
+      >
+    </div>
+  </div>
 {:else}
-  <p>Upload a font to compare</p>
+  <p style="margin: 1em 1.5em;">Upload a font to compare</p>
 {/if}
+
+<style>
+  .overlap-settings {
+    padding: 0.5em 1.5em;
+    &.compare {
+      background: rgb(0 0 0 / 0.1);
+    }
+  }
+  .wrapper {
+    font-family: "User font";
+    font-size: 2em;
+    margin-left: 1em;
+  }
+
+  .pre {
+    margin: 0;
+    position: relative;
+    font-family: inherit;
+    display: inline-block;
+    &.compare {
+      color: rgb(255 0 0 / 0.5);
+      margin: 0;
+    }
+  }
+  .svg {
+    position: relative;
+    &.compare {
+      top: calc(var(--offset-y) - 1lh);
+      & > svg {
+        translate: calc(var(--offset-x)) 0;
+      }
+    }
+  }
+  .pre::before {
+    font-family: initial;
+    font-size: 0.5em;
+    position: absolute;
+    inset: 50% auto auto 0;
+    transform: translate(calc(-1em - 100%), -50%);
+    content: "html";
+  }
+  .svg::before {
+    font-family: initial;
+    font-size: 0.5em;
+    position: absolute;
+    inset: 50% auto auto 0;
+    transform: translate(calc(-1em - 100%), -50%);
+    content: "svg";
+  }
+  .compare.svg::before {
+    color: rgb(0 0 255 / 0.5);
+  }
+</style>

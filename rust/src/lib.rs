@@ -31,17 +31,14 @@ pub fn to_desmos_expr(
 ) -> Result<Option<String>, String> {
     STATE
         .with_borrow(|state| -> anyhow::Result<Option<_>> {
+            let method = method.to_rust()?;
+            let settings = settings.to_rust()?;
             let Some(font_state) = state.loaded_font.as_ref() else {
                 return Ok(None);
             };
             let font_ref = FontRef::new(&font_state.bytes)?;
             let buf = get_glyph_buf(&ShaperFont::new(&font_state.font), text)?;
-            let points = sample_glyph_buf(
-                &*method.to_rust().unwrap().get_sampler(),
-                &font_ref,
-                &settings.to_rust().unwrap(),
-                buf,
-            )?;
+            let points = sample_glyph_buf(&*method.get_sampler(), &font_ref, &settings, buf)?;
             let latex = format!("{}", LatexFormatter(&points));
             Ok(Some(latex))
         })

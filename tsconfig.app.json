@@ -20,5 +20,12 @@
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "src/tmp.jsx",
+    "src/tmp.jsx",
+    "src/tmp.html"
+  ]
 }
