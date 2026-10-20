@@ -14,7 +14,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
     curves::{CubicBezier, Line, QuadBezier},
-    shaping::{BasePen, PenOutput, draw_glyph_buf},
+    shaping::{BasePen, PenOutput, SegmentOutput, draw_glyph_buf},
     state::FontSettings,
 };
 
@@ -46,7 +46,7 @@ pub fn sample_glyph_buf<'a>(
     font_ref: &FontRef,
     settings: &FontSettings,
     buf: Buffer,
-) -> anyhow::Result<Vec<Vec2>> {
+) -> anyhow::Result<SegmentOutput<Vec<Vec2>>> {
     draw_glyph_buf(
         Box::new(PolygonOutput {
             sampler,

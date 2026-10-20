@@ -16,7 +16,7 @@ wasm-bindgen = "0.2.129"
 wuff = "0.2.9"
 harfrust = "0.14.0"
 skrifa = "0.48.0"
-glam = "0.34.1"
+glam = { version = "0.34.1", features = ["serde"] }
 serde = "1.0.229"
 serde-wasm-bindgen = "0.6.5"
 tsify = "0.5.8"

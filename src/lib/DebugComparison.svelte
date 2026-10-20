@@ -21,10 +21,12 @@
     return () => promise.then((fontFace) => document.fonts.delete(fontFace));
   });
 
+  let path = $derived(
+    (void fontFile, to_svg_path(inputText, fontSettings)?.path),
+  );
+
   let resizeSvg: Attachment<SVGSVGElement> = (svg) => {
-    fontFile;
-    inputText; // artificial dependency
-    console.log("resizing svg");
+    path; // artificial dependency
     const { x, y, width, height } = svg.getBBox();
     svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
   };
@@ -59,7 +61,6 @@
 </div>
 {#if fontFile instanceof File}
   {let textWidth: number = $state(0)}
-  {let path = $derived((void fontFile, to_svg_path(inputText, fontSettings)))}
 
   <div class="wrapper">
     <pre

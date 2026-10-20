@@ -1,11 +1,13 @@
 use glam::{IVec2, Vec2, ivec2, vec2};
 use harfrust::{Buffer, ShapeError, ShapeOptions, ShaperFont, shape};
+use serde::Serialize;
 use skrifa::{
     FontRef, GlyphId, MetadataProvider,
     instance::{LocationRef, Size},
     outline::{DrawSettings, OutlinePen},
     raw::TableProvider,
 };
+use tsify::Tsify;
 
 use std::iter;
 
@@ -19,12 +21,17 @@ pub fn get_glyph_buf(shaper: &ShaperFont, text: &str) -> Result<Buffer, ShapeErr
     return Ok(buf);
 }
 
+pub struct SegmentOutput<T> {
+    pub output: T,
+    pub advance: Vec2,
+}
+
 pub fn draw_glyph_buf<'a, T>(
     mut output: Box<dyn PenOutput<Output = T> + 'a>,
     font_ref: &FontRef,
     settings: &FontSettings,
     buf: Buffer,
-) -> anyhow::Result<T> {
+) -> anyhow::Result<SegmentOutput<T>> {
     let location = LocationRef::default();
     let outlines = font_ref.outline_glyphs();
     let mut pen = Pen {
@@ -44,7 +51,11 @@ pub fn draw_glyph_buf<'a, T>(
         glyph.draw(settings, &mut pen)?;
         pen.base.advance += ivec2(glyph_pos.x_advance, glyph_pos.y_advance);
     }
-    Ok(output.output())
+    let base = pen.base;
+    Ok(SegmentOutput {
+        output: output.output(),
+        advance: base.scale * base.advance.as_vec2(),
+    })
 }
 
 struct Pen<'a, T> {

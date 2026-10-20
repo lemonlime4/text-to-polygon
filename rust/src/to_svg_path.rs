@@ -2,31 +2,51 @@
 use glam::Vec2;
 
 use harfrust::ShaperFont;
+use serde::Serialize;
 use skrifa::FontRef;
-use tsify::Ts;
+use tsify::{Ts, Tsify};
 use wasm_bindgen::prelude::*;
 
 use crate::{
     get_glyph_buf,
-    shaping::{BasePen, PenOutput, draw_glyph_buf},
+    shaping::{BasePen, PenOutput, SegmentOutput, draw_glyph_buf},
     state::{FontSettings, STATE},
 };
 
+// this wrapper is necessary, otherwise tsify produces invalid types
+#[derive(Tsify, Serialize)]
+pub struct PathOutput {
+    path: String,
+    advance: crate::Vec2,
+}
+
 // returns None only when no font loaded
 #[wasm_bindgen]
-pub fn to_svg_path(text: &str, settings: Ts<FontSettings>) -> Result<Option<String>, String> {
+pub fn to_svg_path(
+    text: &str,
+    settings: Ts<FontSettings>,
+) -> Result<Option<Ts<PathOutput>>, String> {
     let settings = settings.to_rust().unwrap();
-    STATE.with_borrow(|state| -> Result<Option<_>, _> {
-        let Some(font_state) = state.loaded_font.as_ref() else {
-            return Ok(None);
-        };
-        let font_ref = FontRef::new(&font_state.bytes).map_err(|e| e.to_string())?;
-        let buf =
-            get_glyph_buf(&ShaperFont::new(&font_state.font), text).map_err(|e| e.to_string())?;
-        draw_glyph_buf(Box::new(SvgOutput::default()), &font_ref, &settings, buf)
-            .map_err(|e| e.to_string())
-            .map(|s| Some(s))
-    })
+    STATE
+        .with_borrow(|state| -> anyhow::Result<Option<_>> {
+            let Some(font_state) = state.loaded_font.as_ref() else {
+                return Ok(None);
+            };
+            let font_ref = FontRef::new(&font_state.bytes)?;
+            let buf = get_glyph_buf(&ShaperFont::new(&font_state.font), text)?;
+            let output = draw_glyph_buf(Box::new(SvgOutput::default()), &font_ref, &settings, buf)?;
+            Ok(Some(
+                PathOutput {
+                    path: output.output,
+                    advance: crate::Vec2 {
+                        x: output.advance.x,
+                        y: output.advance.y,
+                    },
+                }
+                .into_ts()?,
+            ))
+        })
+        .map_err(|e| format!("{e}"))
 }
 
 #[derive(Default)]
