@@ -1,11 +1,13 @@
 <script lang="ts">
   type Props = { value: number; small?: boolean; error?: boolean };
 
-  let { value = $bindable(), small = false, error = false }: Props = $props();
-  let text = $derived(value.toString());
+  let {
+    value: numValue = $bindable(),
+    small = false,
+    error = false,
+  }: Props = $props();
+  let text = $derived(numValue.toString().replace("+", ""));
   let invalidText = $state(false);
-
-  $effect(() => console.log(small));
 </script>
 
 <input
@@ -13,14 +15,18 @@
   bind:value={
     () => text,
     (s) => {
-      text = s;
       let x = +s;
-      if (Number.isFinite(x) && x === Number.parseFloat(s)) {
-        value = x;
-        invalidText = false;
-      } else {
-        invalidText = true;
+      // todo improve decimal literal validation
+      let validText =
+        Number.isFinite(x) &&
+        x === Number.parseFloat(s) &&
+        !s.includes("x") &&
+        !s.includes("b");
+      invalidText = !validText;
+      if (validText) {
+        numValue = x;
       }
+      text = s;
     }
   }
   class={{ error: error || invalidText, small }}
