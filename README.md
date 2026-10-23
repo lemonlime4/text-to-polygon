@@ -2,13 +2,15 @@
 
 Convert text to a desmos polygon. Check it out [here](https://lemonlime4.github.io/text-to-polygon).
 
+[SVG to Desmos](https://github.com/jared-hughes/svgToDesmos) can already do this, but I didn't know it could export to polygon when I started. So here we are.
+
 ### What is this for?
 
 If you want to add text to your graph, you have several options:
 
 - Point labels: probably the fastest option; however, positioning and sizing is hard to do, and only a few fonts are available (using latex commands).
 
-- Parametrics ([SVG to Desmos](https://github.com/jared-hughes/svgToDesmos)): easy to position, change fonts, etc. You can also pass these through arbitrary transformations, such as warping.
+- Parametrics: easy to position, change fonts, etc. You can also pass these through arbitrary transformations, such as warping.
 
 - Polygons: same as parametrics, except they're pre-sampled. This avoids sampling artifacts and reduces lag for animations. However, you need to manually adjust the sample density to a desired level.
 
