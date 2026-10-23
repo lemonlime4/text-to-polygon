@@ -10,7 +10,10 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v6
 
-      - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
+      - name: Install and Build 🔧
         run: |
           npm ci
           npm run build
@@ -18,4 +21,4 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: build # The folder the action should deploy.
+          folder: dist
