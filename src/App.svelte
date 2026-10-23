@@ -40,8 +40,10 @@
 
   let calc: Desmos.Calculator;
   const initializeCalc: Attachment<HTMLElement> = (elem) => {
-    calc = Desmos.GraphingCalculator(elem, {});
-    // calc._calc.graphSettings.config.editOnWeb = true;
+    calc = Desmos.GraphingCalculator(elem, {
+      pasteGraphLink: true,
+      actions: true,
+    });
     setExpressions(calc, defaultExpressions);
     // todo: this causes incorrect home button behavior after resize
     // calc.setDefaultState(calc.getState());
@@ -81,7 +83,9 @@
 
   function exportToClipboard() {
     const state = JSON.stringify(JSON.stringify(calc.getState()));
-    navigator.clipboard.writeText(`Calc.setState(JSON.parse(${state}))`);
+    navigator.clipboard.writeText(
+      `Calc.setState(JSON.parse(${state}), { allowUndo: true })`,
+    );
   }
 </script>
 
@@ -113,13 +117,16 @@
 
     <p style="margin-top: 1em">
       <button onclick={exportToClipboard}>Export</button> - copies code to
-      clipboard, open a new desmos tab and paste it in developer console
+      clipboard, open an empty graph and run the code in developer console
       <br />
-      see
+      See
       <a
         href="https://www.desmos.com/api/v1.12/docs/index.html#document-author-features"
-        target="_blank">this</a
-      > page for info on readonly expressions
+        target="_blank"
+      >
+        this page
+      </a>
+      to unlock the readonly expressions
     </p>
 
     <h2>Text settings</h2>
@@ -128,7 +135,7 @@
       <input
         style:display="block"
         type="file"
-        // accept=".ttf, .otf, .woff, .woff2, font/ttf, font/otf, font/woff, font/woff2"
+        accept=".ttf, .otf, .woff, .woff2, font/ttf, font/otf, font/woff, font/woff2"
         bind:files={fileList}
       />
     </div>

@@ -15,16 +15,18 @@
   bind:value={
     () => text,
     (s) => {
-      let x = +s;
-      // todo improve decimal literal validation
       let validText =
-        Number.isFinite(x) &&
-        x === Number.parseFloat(s) &&
+        s !== "" &&
         !s.includes("x") &&
-        !s.includes("b");
+        !s.includes("X") &&
+        !s.includes("b") &&
+        !s.includes("B");
       invalidText = !validText;
       if (validText) {
-        numValue = x;
+        let x = +s;
+        if (Number.isFinite(x)) {
+          numValue = x;
+        }
       }
       text = s;
     }
