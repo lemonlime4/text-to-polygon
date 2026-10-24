@@ -4,7 +4,7 @@ Convert text to a desmos polygon. Check it out [here](https://lemonlime4.github.
 
 [SVG to Desmos](https://github.com/jared-hughes/svgToDesmos) can already do this, but I didn't know it could export to polygon when I started. So here we are.
 
-### What is this for?
+## What is this for?
 
 If you want to add text to your graph, you have several options:
 
@@ -16,7 +16,13 @@ If you want to add text to your graph, you have several options:
 
 Compare animated [polygon](https://www.desmos.com/calculator/3g48l5gqxt) vs [parametric](https://www.desmos.com/calculator/gsmxpxp97g) text.
 
-### Limitations
+## How do I use this?
+
+This tool uses an embedded desmos calculator. If you want to load your own graph, save it, copy the link, and paste the link in this calculator's expression list. This will import your graph.
+
+For exporting, you could either copy paste the point list directly, or use the export button, which copies code to your clipboard. The code replaces the graph in a desmos tab with the tool's graph state.
+
+## Limitations
 
 You can only convert one segment of text at a time. If you want line breaks or multiple font faces, you have to manually save the sampled points and advance widths, and combine them. Also, if you want styles like italic or bold, you have to load individual font files for those.
 
