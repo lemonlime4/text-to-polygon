@@ -109,7 +109,9 @@
       <p>
         Loaded font "{fontLoaded.name}" - {fontLoaded.size} bytes
       </p>
-    {:else if fontLoaded}
+    {:else if fontLoaded === undefined}
+      <p>Upload a font file below</p>
+    {:else}
       <p style="color: red; margin-top: 1em;">
         Error loading {fontLoaded.file.name} - {fontLoaded.error}
       </p>
