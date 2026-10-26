@@ -18,14 +18,22 @@ Compare animated [polygon](https://www.desmos.com/calculator/3g48l5gqxt) vs [par
 
 ## How do I use this?
 
-This tool uses an embedded desmos calculator. If you want to load your own graph, save it, copy the link, and paste the link in this calculator's expression list. This will import your graph.
+Upload a font file from your computer. You can download fonts from [Google Fonts](https://fonts.google.com/) or other websites.
 
-For exporting, you could either copy paste the point list directly, or use the export button, which copies code to your clipboard. The code replaces the graph in a desmos tab with the tool's graph state.
+This tool uses an embedded desmos calculator. If you want to load your own graph, save it, copy the link, and paste the link in this calculator's expression list. This will import your graph into the page's calculator.
 
-## Limitations
+For exporting, you could either copy paste the point list directly, or use the export button, which copies code to your clipboard. The code replaces the graph in a desmos tab with the tool's graph state; run it in the developer console on an empty graph.
+
+### Limitations
 
 You can only convert one segment of text at a time. If you want line breaks or multiple font faces, you have to manually save the sampled points and advance widths, and combine them. Also, if you want styles like italic or bold, you have to load individual font files for those.
 
 Also, for longer text segments, each glyph gets sampled and stored every time it appears, instead of sampling once and instancing at different locations. This might slow down the graph if you're doing lots of text.
 
-More to come soon (or not?)
+### How do I unlock the readonly expressions?
+
+Once you exported to your own desmos graph, save it and enable [Author Features](https://www.desmos.com/api/v1.12/docs/index.html#document-author-features) mode by adding `?authorFeatures` to the end of your current graph's URL. If you're using [Desmodder](https://github.com/DesModder/DesModder), you can enable it in Core&nbsp;> Calculator Settings.
+
+Then, clicking the gear icon at the top of the expressions list, you should be able to make readonly expressions editable.
+
+More features to come (probably)

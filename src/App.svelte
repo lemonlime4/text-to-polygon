@@ -95,7 +95,15 @@
   }}
 />
 
-<h1>Text to desmos</h1>
+<div class="header">
+  <h1>Text to desmos</h1>
+  <a
+    href="https://github.com/lemonlime4/text-to-polygon/blob/main/README.md"
+    target="_blank"
+  >
+    How do I use this?
+  </a>
+</div>
 <div class="container">
   <div class="panel">
     <p style="margin-bottom: 1em;">Convert a text segment to polygons</p>
@@ -105,30 +113,25 @@
       style="width: 100%; padding: 0.3em 0 0.3em 0.5em; font-family: serif;"
     />
 
-    {#if fontLoaded instanceof File}
-      <p>
-        Loaded font "{fontLoaded.name}" - {fontLoaded.size} bytes
-      </p>
-    {:else if fontLoaded === undefined}
-      <p>Upload a font file below</p>
-    {:else}
-      <p style="color: red; margin-top: 1em;">
-        Error loading {fontLoaded.file.name} - {fontLoaded.error}
-      </p>
-    {/if}
+    <div style="padding: 0.5em 0 0 1em;">
+      {#if fontLoaded instanceof File}
+        <p>
+          Loaded font "{fontLoaded.name}" - {fontLoaded.size} bytes
+        </p>
+      {:else if fontLoaded === undefined}
+        <p>Upload a font file below</p>
+      {:else}
+        <p style="color: red">
+          Error loading {fontLoaded.file.name} - {fontLoaded.error}
+        </p>
+      {/if}
+    </div>
 
     <p style="margin-top: 1em">
       <button onclick={exportToClipboard}>Export</button> - copies code to
-      clipboard, open an empty graph and run the code in developer console
+      clipboard;
       <br />
-      See
-      <a
-        href="https://www.desmos.com/api/v1.12/docs/index.html#document-author-features"
-        target="_blank"
-      >
-        this page
-      </a>
-      to unlock the readonly expressions
+      to load this graph, open a new desmos tab and paste the code in the dev console.
     </p>
 
     <h2>Text settings</h2>
@@ -199,11 +202,19 @@
     </div>
   </div>
 
-  <div {@attach initializeCalc} style="height: 100%;"></div>
+  <div {@attach initializeCalc} class="calc"></div>
 </div>
 
 <style>
-  div.container {
+  .header {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5em;
+  }
+
+  .container {
     display: grid;
     grid-template-columns: 22em 2fr;
     flex: 1;
@@ -223,10 +234,14 @@
   }
 
   h1 {
-    margin-top: 0;
+    margin: 0;
   }
 
   p {
     margin: 0;
+  }
+
+  .calc {
+    height: 100%;
   }
 </style>
